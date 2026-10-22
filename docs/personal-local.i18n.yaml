@@ -1,0 +1,31 @@
+# Bilingual-pair consistency record for personal-local.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write docs/personal-local.md
+/:
+  en: 479d95f608192368
+  zh: 2d1410ab833c87fe
+/personal-dsh-local-use-and-maintenance:
+  en: da82ed7aec0f05db
+  zh: 9db0af68f603e100
+/personal-dsh-local-use-and-maintenance/summary:
+  en: 44ba5cd8254d4514
+  zh: 548a84eb69017af4
+/personal-dsh-local-use-and-maintenance/table-of-contents:
+  en: e68872fbcb946b0e
+  zh: f354a68125994a6b
+/personal-dsh-local-use-and-maintenance/start-and-switch-models:
+  en: 0161f4651dde0dab
+  zh: 26e433cc50277058
+/personal-dsh-local-use-and-maintenance/directories-and-ownership:
+  en: a27668650332a461
+  zh: 768cf17e33924abc
+/personal-dsh-local-use-and-maintenance/choose-the-change-location:
+  en: 9272b709b28c4604
+  zh: 2aaa6f07283ebf09
+/personal-dsh-local-use-and-maintenance/maintain-and-upgrade:
+  en: bbe688478a43ae1c
+  zh: 3feab1f20ddceffc
+/personal-dsh-local-use-and-maintenance/evidence-and-limits:
+  en: fdc72414c26bdd1d
+  zh: 2f37d6c8cf32e885
