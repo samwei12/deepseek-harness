@@ -25,52 +25,53 @@ description: "本 fork 的个人 DSH 启动入口、目录职责、模型配置�
 
 ## 启动与切换模型
 
-现有安装依赖已构建的源码仓、本机 Node/Pi 路径及已配置的模型服务。打开 `~/Applications/Harness Dev.app`，或运行已安装的命令：
+日常使用 Electron 开发版，独立 App 打包暂缓。在终端执行以下命令启动已有构建；开发启动器默认使用现有数据目录 `~/.dsh`，无需设置环境变量：
 
 ```sh
-dsh-personal
+cd ~/Develop/deepseek-harness
+pnpm run start:desktop
 ```
 
-在侧栏选择工作目录，再从输入框旁选择模型。分组为 `IDEA Lab · DS Flash` 和 `CloudCLI · Opus`；现有默认是 Flash / Medium，Opus 路由使用 High。这些名称表示模型入口。Agent 循环由 DSH 负责，模型适配器使用 `pi-ai`，不会因此运行 Pi Agent 或加载 Pi 扩展。
+调试窗口和端口沿用上游开发默认值；如需关闭自动调试窗口或避开 9222 端口占用，可按需设置 `DSH_DESKTOP_OPEN_DEVTOOLS=0` 或 `DSH_DESKTOP_RENDERER_DEBUG_PORT=19322`。上游启动器负责提供随附运行库路径；开发应用通过此命令启动，不直接双击生成的应用包。`Cmd+W` 隐藏窗口并保持 Host 运行，`Cmd+Q` 退出；保持启动终端打开。
 
-`Cmd+W` 隐藏桌面窗口并保留 Host，再次打开应用即可返回；`Cmd+Q` 完全退出。需要可选的本机 Web 入口时，先完全退出桌面，再运行：
+在侧栏选择工作目录，再从输入框旁选择模型。分组为 `IDEA Lab · DS Flash`、`CloudCLI · Opus` 和 `Qoder · DS Flash`。Qoder 需要本机 Magpie 图形应用保持运行。Agent 循环由 DSH 负责，`pi-ai` 模型适配器不会运行 Pi Agent 或加载 Pi 扩展。
 
-```sh
-node ~/.local/share/dsh-personal/start.mjs --open
-```
+终端连续对话使用 `dsh --profile pi-tui`，先进入工作目录再执行。这个原生 CLI profile 加载社区插件 `@xmoon76/dsh-pi-tui@0.5.3`。使用 `/model` 切换模型、`/sessions` 浏览历史、快速按两次 Ctrl+C 退出；`dsh --profile pi-tui --session <session-id>` 恢复会话。单独执行 `dsh` 保持上游 CLI 行为。
 
-Web 启动器监听 `127.0.0.1:3080`；保持终端运行，使用 Ctrl+C 停止。桌面和 Web profile 共享会话数据，并行 Host 未经验收，因此每次只运行一个。此 loopback 入口不提供手机或远程访问。
+`~/.dsh/cordis.patch.yml` 保存共享模型目录、权限、遥测设置和本地凭据 provider 配置。DSH 在各 profile 之后组合这个原生 home 配置层，启动器不再复制或转换配置。界面偏好和默认模型继续归各 profile；共享存储不代表两个 Host 可以同时执行同一会话。
 
 <a id="directories-and-ownership"></a>
 
 ## 目录与职责
 
-下表描述现有机器的目录；只克隆 fork 不会自动复现这套安装。
+下表描述本机目录。克隆 fork 不包含私有运行配置。
 
 | 位置 | 职责 |
 | --- | --- |
-| `~/Develop/deepseek-harness` | 源码仓：`origin` 为个人 fork，`upstream` 为官方仓库。 |
-| `~/.local/share/dsh-personal` | 个人 `DSH_HOME`；既有 `~/.dsh` 是另一目录。 |
-| `$DSH_HOME/profiles/{desktop,web}/cordis.patch.yml` | 各 profile 的模型与插件配置。 |
-| `$DSH_HOME/start.mjs`、`desktop-official-launcher.sh` | 本地启动适配与既有凭据解析引用。 |
-| `$DSH_HOME/sessions/`、`storages/`、`runtime.log` | 原生会话、插件状态和运行日志，均非源码。 |
-| `$DSH_HOME/workspace/` | 现有试用工作目录，不是 DSH 源码根目录。 |
-| `~/Applications/Harness Dev.app`、`~/.local/bin/dsh-personal` | 桌面应用软链接与命令入口；应用指向仓内 `apps/desktop/.desktop-build/development/`。 |
-| `~/.agents/skills`、`~/Develop/ai-runtime` | 共享 Skill 发现与其维护源；记忆适配归 `skills/memory-runtime`。 |
-| `$DSH_HOME/AGENTS.md` | 链接到 `~/Develop/ai-runtime/memory/.memories/AGENTS.md` 共享全局规则；源码工作约定归仓库 `AGENTS.md`。 |
+| `~/Develop/deepseek-harness` | 源码仓：个人 `origin`、官方 `upstream`，以及构建产物。 |
+| `~/.dsh` | 默认 Harness home，沿用上游配置与持久化格式。 |
+| `~/.dsh/cordis.patch.yml` | 供所有 profile 使用的原生共享配置。 |
+| `~/.dsh/profiles/{desktop,web,pi-tui}/` | 原生 profile 清单、已安装插件与界面偏好。 |
+| `~/.dsh/profiles/shared-credentials/keychain.mjs` | 本地钥匙串凭据 provider；其他引用和记录沿用 DSH 原生凭据存储。 |
+| `~/.dsh/sessions/`、`storages/`、`user-history/`、`logs/` | 原生会话、插件状态、输入历史与日志。 |
+| `~/.local/bin/dsh` | 指向 fork 官方构建 CLI 的软链接，使用 PATH 中的 Node。 |
+| `~/.agents/skills`、`~/Develop/ai-runtime` | 共享 Skill 与维护源；记忆接入归 `skills/memory-runtime`。 |
+| `~/.dsh/AGENTS.md` | 共享全局规则的软链接；源码工作约定归仓库 `AGENTS.md`。 |
+| `~/.local/share/dsh-personal` | 早期测试工作目录与证据，不再作为运行 home 或启动器；保留旧会话工作目录的有效性。 |
+| `~/.local/share/dsh-backups` | 可恢复的迁移备份与本机验收记录。 |
 | `~/Develop/PKM/00-Projects/本地个人 Agent.md` | 项目目标与决定；修改遵循 Obsidian PKM 流程。 |
 
 <a id="choose-the-change-location"></a>
 
 ## 按改动选择位置
 
-修改模型显示名或参数时，编辑对应 profile patch，再核对模型菜单；同时适用于桌面与 Web 时检查两处。`pi-idea` 等路由标识与显示名分开，凭据保持引用，不复制到文档或 Git。Pi 模型元数据变化不会自动更新 DSH profile 的值。
+修改共享模型显示名或参数时，编辑 home 配置层，再核对模型菜单。`pi-idea` 等路由标识与显示名分开。钥匙串插件直接解析已配置的凭据引用，不依赖 Pi 运行时，也不把密钥复制进配置；模型元数据归 DSH 配置维护，不从 Pi 同步。
 
-启动异常先检查本地启动器及其依赖。启动器解析既有 Pi 凭据引用，并注入 DSH 进程；CloudCLI 路由还依赖现有桥接服务及网络连接。额度或网络错误不能单独证明 DSH 配置有缺陷。
+启动异常先检查上游启动日志、实际 profile 及其插件配置。CloudCLI 和 Qoder 依赖现有模型网关；额度或网络失败不能单独证明迁移或配置有缺陷。
 
 修改产品功能时，遵循[架构说明](architecture.zh.md)、所属包 README 和[开发指南](development.zh.md)。桌面代码在 `apps/desktop`，模型适配在 `packages/llm/llm-pi-ai`；行为扩展落到所属插件，不把个人接入逻辑塞入无关核心包。
 
-处理记忆采集或显式召回时，使用既有 `memory-runtime` Skill 及共享源仓中的 `references/dsh-capture.md`。现有 worker 从 `~/.memories/capture/incremental.json` 读取已启用的 DSH 目录，不依赖 Pi 扩展。保留原生来源过滤和稳定身份去重；采集的对话原文不会自动成为已确认的长期事实。
+处理记忆采集或显式召回时，使用既有 `memory-runtime` Skill 及共享源仓中的 `references/dsh-capture.md`。现有外部 worker 从 `~/.memories/capture/incremental.json` 读取已启用的 DSH 目录，当前为 `~/.dsh`；它不是 DSH 进程内插件，也不依赖 Pi 扩展。保留原生来源过滤和稳定身份去重；采集的对话原文不会自动成为已确认的长期事实。
 
 <a id="maintain-and-upgrade"></a>
 
@@ -78,7 +79,15 @@ Web 启动器监听 `127.0.0.1:3080`；保持终端运行，使用 Ctrl+C 停止
 
 升级前检查工作区、实际版本及对应[升级指南](upgrade-guide/)，合入上游时保留个人入口文档。重新构建或安装前，阅读版本对应的[桌面说明](../apps/desktop/README.zh.md)与本机安装记录。
 
-开发版应用依赖此 checkout 和生成产物；重新生成应用可能覆盖本地启动适配，之后需核对凭据注入、primary-runtime 路径、签名和正常应用启动。Node/Pi 升级也可能使启动器记录的路径失效。安装还可能影响 Git hooks，应保留本机记录中说明的仓库专属 hook 设置。
+更新源码后，先用 `Cmd+Q` 退出旧实例，再在终端执行以下命令。`dev:desktop` 会重新编译并启动；以后日常打开仍用 `start:desktop`。
+
+```sh
+cd ~/Develop/deepseek-harness
+pnpm install --frozen-lockfile
+pnpm run dev:desktop
+```
+
+开发应用依赖此 checkout 和生成产物。保持生成的启动器原样，不添加个人启动包装；上述重建流程保留 `~/.dsh` 中的模型、凭据与会话，并保留现有 memory-runtime 采集配置。升级后验证官方 CLI、本地钥匙串插件、历史续聊及工具调用，并保留仓库专属 Git hook 设置。
 
 私有运行文件保持原位，不纳入提交。迁移运行数据或破坏性重置前，先明确精确范围并留可恢复备份。克隆或更新源码本身不授权迁移会话、更改凭据或修改 Pi 配置。验证实际改动的行为，未变路径复用仍适用的证据。
 
@@ -86,6 +95,6 @@ Web 启动器监听 `127.0.0.1:3080`；保持终端运行，使用 Ctrl+C 停止
 
 ## 证据与限制
 
-本机 `~/.local/share/dsh-personal/README.md` 保留安装细节和带日期的验收证据，截图与 `memory-verification.json` 留在同目录。需要确认已测范围时读取该记录；决策依赖实时状态时再核对现场。不把会话正文、凭据、服务地址或机器专属回执复制到公开 fork。
+本机 `~/.dsh/README.md` 记录当前使用方式与带日期的验收入口。迁移备份和验收记录保留在 Git 之外；确认已测范围时读取记录，必要时再查现场。不把会话正文、凭据、服务地址或机器专属回执复制到公开 fork。
 
 当前是源码构建的开发版应用，不是独立安装包；未配置自动启动。桌面和记忆接入验收不代表手机访问、真实系统休眠或整机重启恢复、完整定时助理能力已通过。

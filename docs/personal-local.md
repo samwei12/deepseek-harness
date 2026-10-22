@@ -25,52 +25,53 @@ The current plan selects the home Mac mini as the persistent assistant Host, add
 
 ## Start and switch models
 
-The existing installation requires its built checkout, local Node/Pi paths, and configured model services. Open `~/Applications/Harness Dev.app` or run the installed command:
+Use the Electron development app for daily work; standalone App packaging is deferred. Run these commands in a terminal to launch the existing build; the development launcher defaults to the existing `~/.dsh` data without environment overrides:
 
 ```sh
-dsh-personal
+cd ~/Develop/deepseek-harness
+pnpm run start:desktop
 ```
 
-Choose a workspace in the sidebar, then select a model beside the message input. The groups are `IDEA Lab · DS Flash` and `CloudCLI · Opus`; the existing default is Flash / Medium, and the Opus route uses High. These labels identify model routes. DSH owns the agent loop; its model adapter uses `pi-ai`, without running Pi Agent or loading Pi extensions.
+Debugging retains upstream development defaults; optionally set `DSH_DESKTOP_OPEN_DEVTOOLS=0` to close automatic DevTools or `DSH_DESKTOP_RENDERER_DEBUG_PORT=19322` to avoid a port 9222 conflict. The upstream launcher supplies its bundled-runtime location; launch the development app through this command, not by opening the generated app bundle directly. `Cmd+W` hides its window while the Host stays running; `Cmd+Q` exits. Keep the invoking terminal open.
 
-`Cmd+W` hides the desktop window while its Host remains running; reopen the app to return. `Cmd+Q` exits the application. For the optional local Web entry, fully quit desktop first, then run:
+Choose a workspace in the sidebar, then select a model beside the message input. The groups are `IDEA Lab · DS Flash`, `CloudCLI · Opus`, and `Qoder · DS Flash`. Qoder requires the local Magpie GUI to remain running. DSH owns the agent loop; the `pi-ai` model adapter does not run Pi Agent or load Pi extensions.
 
-```sh
-node ~/.local/share/dsh-personal/start.mjs --open
-```
+For continuous terminal chat, enter the workspace and run `dsh --profile pi-tui`. This native CLI profile loads community plugin `@xmoon76/dsh-pi-tui@0.5.3`. Use `/model` to switch models, `/sessions` to browse history, two quick Ctrl+C presses to exit, and `dsh --profile pi-tui --session <session-id>` to resume. Bare `dsh` retains upstream CLI behavior.
 
-The Web launcher listens on `127.0.0.1:3080`; keep its terminal running and use Ctrl+C to stop it. Desktop and Web profiles share session data. Concurrent Hosts have not been validated, so run one at a time. This loopback entry does not provide phone or remote access.
+`~/.dsh/cordis.patch.yml` holds the shared model catalog, permissions, telemetry settings, and local credential-provider configuration. DSH composes this native home layer after each profile; no launcher copies or translates configuration. Interface preferences and default models remain profile-owned. Shared storage does not authorize simultaneous execution of the same session in two Hosts.
 
 <a id="directories-and-ownership"></a>
 
 ## Directories and ownership
 
-Paths below describe the existing machine. A clone of the fork alone does not reproduce this installation.
+Paths below describe this machine. A clone of the fork does not contain private runtime configuration.
 
 | Location | Responsibility |
 | --- | --- |
-| `~/Develop/deepseek-harness` | Source checkout: `origin` is the personal fork and `upstream` is the official repository. |
-| `~/.local/share/dsh-personal` | Personal `DSH_HOME`; existing `~/.dsh` is a separate directory. |
-| `$DSH_HOME/profiles/{desktop,web}/cordis.patch.yml` | Per-profile model and plugin configuration. |
-| `$DSH_HOME/start.mjs`, `desktop-official-launcher.sh` | Local launch adaptation and references to existing credential resolution. |
-| `$DSH_HOME/sessions/`, `storages/`, `runtime.log` | Native sessions, plugin state, and runtime log; not source files. |
-| `$DSH_HOME/workspace/` | Existing trial workspace; not the DSH source root. |
-| `~/Applications/Harness Dev.app`, `~/.local/bin/dsh-personal` | Desktop app symlink and command entry. The app points into `apps/desktop/.desktop-build/development/`. |
-| `~/.agents/skills`, `~/Develop/ai-runtime` | Shared Skill discovery and its maintained sources; memory adaptation belongs to `skills/memory-runtime`. |
-| `$DSH_HOME/AGENTS.md` | Symlink to the shared global rules in `~/Develop/ai-runtime/memory/.memories/AGENTS.md`. Repository `AGENTS.md` owns source-work instructions. |
+| `~/Develop/deepseek-harness` | Source checkout: personal `origin`, official `upstream`, and built application artifacts. |
+| `~/.dsh` | Default Harness home, using upstream configuration and persistence formats. |
+| `~/.dsh/cordis.patch.yml` | Native shared configuration for all profiles. |
+| `~/.dsh/profiles/{desktop,web,pi-tui}/` | Native profile manifests, installed plugins, and interface preferences. |
+| `~/.dsh/profiles/shared-credentials/keychain.mjs` | Local Keychain credential provider; other references and records retain DSH's native credential store. |
+| `~/.dsh/sessions/`, `storages/`, `user-history/`, `logs/` | Native sessions, plugin state, input history, and logs. |
+| `~/.local/bin/dsh` | Symlink to the fork's official built CLI; uses Node from PATH. |
+| `~/.agents/skills`, `~/Develop/ai-runtime` | Shared Skills and maintained sources; memory integration belongs to `skills/memory-runtime`. |
+| `~/.dsh/AGENTS.md` | Symlink to the shared global rules; repository `AGENTS.md` owns source-work instructions. |
+| `~/.local/share/dsh-personal` | Earlier trial workspaces and evidence; no active Harness home or launcher. Existing session working directories remain valid. |
+| `~/.local/share/dsh-backups` | Recoverable migration backups and local verification records. |
 | `~/Develop/PKM/00-Projects/本地个人 Agent.md` | Project goals and decisions; edits follow the Obsidian PKM workflow. |
 
 <a id="choose-the-change-location"></a>
 
 ## Choose the change location
 
-For a model label or parameter, edit the owning profile patch and verify the model menu. Check both desktop and Web when the change applies to both. Route identifiers such as `pi-idea` are separate from display labels; credentials remain references and must not be copied into documentation or Git. Changes to Pi model metadata do not automatically update DSH profile values.
+Edit shared model labels and parameters in the home patch, then verify the model menu. Route identifiers such as `pi-idea` are distinct from display labels. The Keychain plugin resolves configured credential references directly, with no Pi runtime dependency or key copy into configuration. Model metadata is owned by DSH configuration, not synchronized from Pi.
 
-For startup problems, inspect the local launcher and its dependencies. It resolves existing Pi credential references and injects them into the DSH process. The CloudCLI route also requires its existing bridge service and network connection. A quota or network error does not establish a DSH configuration defect.
+For startup problems, inspect upstream launch diagnostics, the active profile, and its configured plugins. CloudCLI and Qoder require their existing model gateways. A quota or network failure does not establish a migration or configuration defect.
 
 For product changes, follow [architecture](architecture.md), the owning package README, and [development](development.md). Desktop code belongs to `apps/desktop`; model adaptation belongs to `packages/llm/llm-pi-ai`. Add behavior through the owning plugin rather than putting personal integration logic into unrelated core packages.
 
-For memory capture or explicit recall, use the existing `memory-runtime` Skill and its `references/dsh-capture.md` under the shared source repository. The existing worker reads enabled DSH homes from `~/.memories/capture/incremental.json`; it does not require a Pi extension. Preserve native source filtering and stable identity deduplication. Captured conversation text is not automatically a confirmed long-term fact.
+For memory capture or explicit recall, use the existing `memory-runtime` Skill and its `references/dsh-capture.md` under the shared source repository. The existing external worker reads enabled DSH homes from `~/.memories/capture/incremental.json`, currently `~/.dsh`; it is not an in-process DSH plugin and does not require a Pi extension. Preserve native source filtering and stable identity deduplication. Captured conversation text is not automatically a confirmed long-term fact.
 
 <a id="maintain-and-upgrade"></a>
 
@@ -78,7 +79,15 @@ For memory capture or explicit recall, use the existing `memory-runtime` Skill a
 
 Before upgrading, inspect the working tree, actual versions, and relevant [upgrade guides](upgrade-guide/). Preserve personal documentation when integrating upstream changes. Read the version-matched [desktop instructions](../apps/desktop/README.md) and the local installation record before rebuilding or reinstalling.
 
-The development app depends on this checkout and generated artifacts. Regenerating it can overwrite its local launch adaptation; verify credential injection, primary-runtime resolution, signing, and a normal app launch afterward. Node/Pi upgrades can invalidate paths recorded by the local launcher. Installation can also affect Git hooks; preserve the repository-specific hook setup described in the local record.
+After updating source, quit the old instance with `Cmd+Q`, then run the following commands in a terminal. `dev:desktop` rebuilds and launches; use `start:desktop` for subsequent daily launches.
+
+```sh
+cd ~/Develop/deepseek-harness
+pnpm install --frozen-lockfile
+pnpm run dev:desktop
+```
+
+The development app depends on this checkout and generated artifacts. Keep its generated launcher unchanged and add no personal launch wrapper; this rebuild preserves models, credentials, sessions in `~/.dsh`, and the existing memory-runtime capture configuration. Validate the official CLI, local Keychain provider, historical-session resume, and tools after an upgrade; preserve the repository-specific Git hook setting.
 
 Keep private runtime files in place and outside commits. Before a runtime migration or destructive reset, establish the exact scope and a recoverable backup. Cloning or updating source alone does not authorize migrating sessions, changing credentials, or modifying Pi configuration. Validate the changed behavior; reuse still-applicable evidence for untouched paths.
 
@@ -86,6 +95,6 @@ Keep private runtime files in place and outside commits. Before a runtime migrat
 
 ## Evidence and limits
 
-The machine-local `~/.local/share/dsh-personal/README.md` retains installation details and dated acceptance evidence; screenshots and `memory-verification.json` remain beside it. Consult that record for what was tested, then check live state when a decision depends on it. Do not copy session bodies, credentials, endpoints, or machine-specific receipts into the public fork.
+The machine-local `~/.dsh/README.md` records current usage and dated verification references. Migration backups and acceptance records remain outside Git. Consult them for tested behavior and check live state when needed. Do not copy session bodies, credentials, endpoints, or machine-specific receipts into the public fork.
 
 The current setup is a source-built development app, not a standalone installer. It has no configured automatic startup; phone access, real system sleep/reboot recovery, and complete scheduled-assistant behavior are not established by the desktop and memory acceptance.
