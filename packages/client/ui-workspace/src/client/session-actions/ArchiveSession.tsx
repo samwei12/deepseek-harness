@@ -49,7 +49,7 @@ export function ArchiveSessionMenuItem({
 }
 
 /**
- * Hover button (order 100): archive, or restore an archived row.
+ * Hover button (order 200): archive, or restore an archived row.
  * @param props - owner share and the archive share.
  * @returns the button.
  */

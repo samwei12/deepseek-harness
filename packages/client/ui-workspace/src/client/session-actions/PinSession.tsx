@@ -46,7 +46,7 @@ export function PinSessionMenuItem(props: SessionMenuItemProps<PinSessionInjecte
 }
 
 /**
- * Hover button (order 200, rightmost: it lands where the rest-state pin marker sits); absent on archived rows.
+ * Hover button (order 100); absent on archived rows.
  * @param props - owner share and the pin share.
  * @returns the button, or null for an archived Session.
  */

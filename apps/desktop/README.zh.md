@@ -291,13 +291,18 @@ Electron 主进程在启动时读取一次 `app.getPath('userData')/desktop/sett
 
 ```json
 {
+  "appearance": {
+    "zoomFactor": 1
+  },
   "updates": {
     "allowTestAuthPopupWindow": false
   }
 }
 ```
 
-已有文件不会被覆盖；缺少 `updates` 对象或该字段时均按 `false` 处理。将字段设为 `true` 后完全退出并重启应用，即可允许测试鉴权弹窗。改回 `false` 并重启即可再次禁止。创建、读取或校验失败时使用默认值 `false`，不阻止启动。Desktop 尝试在 Electron 控制台记录包含文件路径的警告；日志不可用也不阻止启动。修正文件并重启后才会应用显式设置。未知字段会保留。安装更新保留此用户数据文件；Windows 卸载按[卸载规则](#windows-uninstall-rules)删除它。
+启动时保留已有文件；缺少 `updates` 对象或该字段时均按 `false` 处理。将字段设为 `true` 后完全退出并重启应用，即可允许测试鉴权弹窗。改回 `false` 并重启即可再次禁止。创建、读取或校验失败时使用默认值 `false`，不阻止启动。Desktop 尝试在 Electron 控制台记录包含文件路径的警告；日志不可用也不阻止启动。修正文件并重启后才会应用显式设置。未知字段会保留。安装更新保留此用户数据文件；Windows 卸载按[卸载规则](#windows-uninstall-rules)删除它。
+
+应用菜单的 **界面缩放** 子菜单调整整个主窗口，包括侧栏、弹窗与文字。选择比例会更新此文件中的 `appearance.zoomFactor` 并立即生效；写入失败时保留当前显示比例。手动修改文件后需重启。支持范围为 `0.5`～`2`，默认 `1`（100%）。写入保留其他字段，并跟随设置文件的软链接。原有字号快捷键仍独立调整文字大小。
 
 <a id="mandatory-update-policy"></a>
 

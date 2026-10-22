@@ -61,6 +61,8 @@ Paths below describe this machine. A clone of the fork does not contain private 
 | `~/.local/share/dsh-backups` | Recoverable migration backups and local verification records. |
 | `~/Develop/PKM/00-Projects/本地个人 Agent.md` | Project goals and decisions; edits follow the Obsidian PKM workflow. |
 
+Desktop UI preferences and the plugin manifest are maintained in `~/Develop/config/Mac/.dsh`. The desktop profile and Electron shell settings directories link there; the directory’s README owns the layout, plugin versions, and recovery steps. Whole-window zoom is available from the application menu. Session data and credentials retain their existing owners.
+
 <a id="choose-the-change-location"></a>
 
 ## Choose the change location

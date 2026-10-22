@@ -3,6 +3,41 @@
     "label": "Check for Updates…"
   },
   {
+    "label": "Interface Zoom",
+    "submenu": [
+      {
+        "label": "75%",
+        "type": "radio",
+        "checked": false
+      },
+      {
+        "label": "100%",
+        "type": "radio",
+        "checked": true
+      },
+      {
+        "label": "110%",
+        "type": "radio",
+        "checked": false
+      },
+      {
+        "label": "125%",
+        "type": "radio",
+        "checked": false
+      },
+      {
+        "label": "150%",
+        "type": "radio",
+        "checked": false
+      },
+      {
+        "label": "200%",
+        "type": "radio",
+        "checked": false
+      }
+    ]
+  },
+  {
     "label": "Manage dsh Command…"
   },
   {

@@ -321,8 +321,8 @@ export function apply(ctx: Context): void {
     yield ctx.slots.register({ name: 'sidebar.workspaces.session.menu.item', id: 'session-id', order: 450, locale: NS, inject: sessionIdInjected }, SessionIdMenuItem)
   })
   ctx.slots.inject('sidebar.workspaces.session.row.action', function* () {
-    yield ctx.slots.register({ name: 'sidebar.workspaces.session.row.action', id: 'archive', order: 100, locale: NS, inject: archiveInjected }, ArchiveSessionRowButton)
-    yield ctx.slots.register({ name: 'sidebar.workspaces.session.row.action', id: 'pin', order: 200, locale: NS, inject: pinInjected }, PinSessionRowButton)
+    yield ctx.slots.register({ name: 'sidebar.workspaces.session.row.action', id: 'pin', order: 100, locale: NS, inject: pinInjected }, PinSessionRowButton)
+    yield ctx.slots.register({ name: 'sidebar.workspaces.session.row.action', id: 'archive', order: 200, locale: NS, inject: archiveInjected }, ArchiveSessionRowButton)
   })
   // The surfaces the actions raise live in the frame-wide layer: they must
   // outlive the row menu the action sat in.

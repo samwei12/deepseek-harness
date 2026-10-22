@@ -291,13 +291,18 @@ On first launch, including after an upgrade, Desktop creates this document if it
 
 ```json
 {
+  "appearance": {
+    "zoomFactor": 1
+  },
   "updates": {
     "allowTestAuthPopupWindow": false
   }
 }
 ```
 
-Existing documents are never overwritten; an omitted `updates` object or field resolves to `false`. Set the field to `true` to permit test authentication dialogs, then fully quit and restart the application. Set it back to `false` and restart to suppress them again. Creation, read, or validation failures use the default `false` without blocking startup. Desktop attempts to warn through the Electron console with the file path; unavailable logging does not block startup. Correct the file and restart to apply an explicit setting. Unknown fields are preserved. Installation updates retain this user-data file; Windows uninstallation removes it under the [uninstall rules](#windows-uninstall-rules).
+Startup preserves existing documents; an omitted `updates` object or field resolves to `false`. Set the field to `true` to permit test authentication dialogs, then fully quit and restart the application. Set it back to `false` and restart to suppress them again. Creation, read, or validation failures use the default `false` without blocking startup. Desktop attempts to warn through the Electron console with the file path; unavailable logging does not block startup. Correct the file and restart to apply an explicit setting. Unknown fields are preserved. Installation updates retain this user-data file; Windows uninstallation removes it under the [uninstall rules](#windows-uninstall-rules).
+
+The application menu’s **Interface Zoom** submenu scales the complete main window, including sidebars, dialogs, and text. A selection updates `appearance.zoomFactor` in this file and takes effect immediately; write failures leave the displayed scale unchanged. File edits take effect after restarting. The supported range is `0.5`–`2`, with `1` (100%) as the default. The writer preserves other fields and follows settings-file symlinks. The existing text-size shortcuts still adjust text sizes independently.
 
 <a id="mandatory-update-policy"></a>
 

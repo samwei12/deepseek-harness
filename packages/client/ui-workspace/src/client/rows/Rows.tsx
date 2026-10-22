@@ -655,8 +655,7 @@ export function SessionNodeItem({
           {primaryStatus.trailingLabel ?? timeLabel(row.updatedAt, now, t)}
         </span>
       )}
-      {/* Trails the time so the marker occupies the same right-edge cell as
-          the hover pin button that replaces it. */}
+      {/* The resting pin marker trails the timestamp. */}
       {row.pinned && !row.archived && <PinnedIndicator t={t} />}
       {/* The strip's clicks stay in the strip: the trigger and every
           row.action entry act without also opening the row, so an entry's

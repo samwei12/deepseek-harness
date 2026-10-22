@@ -52,7 +52,7 @@ import { DesktopMandatoryUpdatePolicy, resolveDesktopPolicyConfig, type DesktopP
 import { desktopClientMetadata, desktopClientVersion } from './client-metadata.ts'
 import { DesktopMandatoryUpdateWindow } from './mandatory-update-window.ts'
 import { DesktopPolicyTestAuth } from './policy-test-auth.ts'
-import { readDesktopSettings } from './settings.ts'
+import { readDesktopSettings, writeDesktopZoomFactor } from './settings.ts'
 import { DesktopUpdateDialog, type UpdateDialogOptions } from './update-dialog.ts'
 import { readDesktopRuntime } from './runtime-tree.ts'
 import { DesktopBrowserGuests } from './browser-guests.ts'
@@ -205,7 +205,7 @@ function platformLoginUrl(authorizeUrl: string): string {
   return url.href
 }
 
-function createWindow(preload: string, show = false, primary = false): BrowserWindow {
+function createWindow(preload: string, show = false, primary = false, zoomFactor = 1): BrowserWindow {
   const window = new BrowserWindow({
     width: 1280,
     height: 820,
@@ -229,6 +229,7 @@ function createWindow(preload: string, show = false, primary = false): BrowserWi
       backgroundColor: '#00000000',
     } : {}),
     webPreferences: {
+      zoomFactor,
       preload,
       nodeIntegration: false,
       contextIsolation: true,
@@ -316,6 +317,7 @@ function createWindow(preload: string, show = false, primary = false): BrowserWi
 
 async function main(): Promise<void> {
   const desktopSettings = readDesktopSettings(app.getPath('userData'))
+  let zoomFactor = desktopSettings.appearance.zoomFactor
   void pruneCrashReports(app.getPath('logs'))
   const journalDirectory = process.env.DSH_DESKTOP_UPDATE_JOURNAL_DIR
   const updateJournal = journalDirectory === undefined ? undefined : new DesktopUpdateJournal(journalDirectory, app.getVersion())
@@ -960,6 +962,20 @@ async function main(): Promise<void> {
       : { label: currentDesktopLocale().messages.aboutMenu, role: 'about' },
     { type: 'separator' },
     { label: currentDesktopLocale().messages.checkUpdatesMenu, click: () => { void openUpdatePrompt(true) } },
+    { label: currentDesktopLocale().messages.interfaceZoomMenu, submenu: [0.75, 1, 1.1, 1.25, 1.5, 2].map(factor => ({
+      label: `${String(Math.round(factor * 100))}%`, type: 'radio' as const, checked: factor === zoomFactor,
+      click: () => {
+        try { writeDesktopZoomFactor(app.getPath('userData'), factor) } catch (error) {
+          dialog.showErrorBox(currentDesktopLocale().messages.interfaceZoomFailed,
+            error instanceof Error ? error.message : String(error))
+          refreshApplicationMenu()
+          return
+        }
+        zoomFactor = factor
+        mainWindow?.webContents.setZoomFactor(factor)
+        refreshApplicationMenu()
+      },
+    })) },
     ...process.platform === 'darwin' || process.platform === 'win32'
       ? [{ label: currentDesktopLocale().messages.cliCommandMenu, click: () => { void commandManager.show() } }] : [],
     ...development ? [
@@ -1070,7 +1086,7 @@ async function main(): Promise<void> {
     }
   }
   const createMainWindow = (): BrowserWindow => {
-    const window = createWindow(appPreload, false, true)
+    const window = createWindow(appPreload, false, true, zoomFactor)
     mainWindow = window
     browserGuests.bind(window, (guest, name) => shortcuts.attachGuest(window, guest, name))
     shortcuts.attach(window)

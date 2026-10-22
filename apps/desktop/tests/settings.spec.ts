@@ -1,9 +1,9 @@
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { lstatSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs'
 import * as fs from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, beforeEach, expect, it, onTestFinished, vi } from 'vitest'
-import { readDesktopSettings } from '../src/settings.ts'
+import { readDesktopSettings, writeDesktopZoomFactor } from '../src/settings.ts'
 
 vi.mock('node:fs', async importOriginal => ({ ...await importOriginal<typeof import('node:fs')>() }))
 
@@ -22,8 +22,9 @@ it('creates a discoverable default file on first launch without touching other p
   const { userData, path } = fixture()
   rmSync(join(userData, 'desktop'), { recursive: true })
   writeFileSync(join(userData, 'keybindings.json'), 'existing shortcuts\n')
-  expect(readDesktopSettings(userData)).toEqual({ updates: { allowTestAuthPopupWindow: false } })
-  expect(readFileSync(path, 'utf8')).toBe('{\n  "updates": {\n    "allowTestAuthPopupWindow": false\n  }\n}\n')
+  const defaults = { appearance: { zoomFactor: 1 }, updates: { allowTestAuthPopupWindow: false } }
+  expect(readDesktopSettings(userData)).toEqual(defaults)
+  expect(readFileSync(path, 'utf8')).toBe(`${JSON.stringify(defaults, null, 2)}\n`)
   expect(readFileSync(join(userData, 'keybindings.json'), 'utf8')).toBe('existing shortcuts\n')
 })
 
@@ -31,6 +32,42 @@ it.each(['{}', '{"updates": {}}', '{"other": 1, "updates": {"other": true}}'])('
   const { userData, path } = fixture()
   writeFileSync(path, raw)
   expect(readDesktopSettings(userData).updates.allowTestAuthPopupWindow).toBe(false)
+  expect(readDesktopSettings(userData).appearance.zoomFactor).toBe(1)
+  expect(readFileSync(path, 'utf8')).toBe(raw)
+})
+
+it('saves zoom through a symlink and preserves unrelated settings', () => {
+  const { userData, path } = fixture()
+  const target = join(userData, 'shared-settings.json')
+  writeFileSync(target, JSON.stringify({ appearance: { custom: 'keep' }, updates: { allowTestAuthPopupWindow: true }, custom: 7 }))
+  symlinkSync(target, path)
+  writeDesktopZoomFactor(userData, 1.1)
+  expect(lstatSync(path).isSymbolicLink()).toBe(true)
+  expect(JSON.parse(readFileSync(target, 'utf8'))).toEqual({
+    appearance: { custom: 'keep', zoomFactor: 1.1 }, updates: { allowTestAuthPopupWindow: true }, custom: 7,
+  })
+  expect(readDesktopSettings(userData).appearance.zoomFactor).toBe(1.1)
+})
+
+it.each([0, 0.49, 2.01, NaN, Infinity])('rejects zoom %s before changing the file', (factor) => {
+  const { userData, path } = fixture()
+  writeFileSync(path, '{}')
+  expect(() => { writeDesktopZoomFactor(userData, factor) }).toThrow('appearance.zoomFactor')
+  expect(readFileSync(path, 'utf8')).toBe('{}')
+})
+
+it.each(['null', '{', '{"appearance":[]}', '{"appearance":null}'])('preserves invalid settings when saving zoom: %s', (raw) => {
+  const { userData, path } = fixture()
+  writeFileSync(path, raw)
+  expect(() => { writeDesktopZoomFactor(userData, 1.1) }).toThrow()
+  expect(readFileSync(path, 'utf8')).toBe(raw)
+})
+
+it.each(['{"appearance":{"zoomFactor":"1.1"}}', '{"appearance":{"zoomFactor":0}}', '{"appearance":{"zoomFactor":3}}'])('reports invalid zoom and keeps the settings document: %s', (raw) => {
+  const { userData, path } = fixture()
+  writeFileSync(path, raw)
+  expect(readDesktopSettings(userData).appearance.zoomFactor).toBe(1)
+  expect(console.warn).toHaveBeenCalledWith(expect.stringContaining(path), expect.any(Error))
   expect(readFileSync(path, 'utf8')).toBe(raw)
 })
 

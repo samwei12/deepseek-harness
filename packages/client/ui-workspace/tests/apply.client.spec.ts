@@ -291,8 +291,8 @@ describe('ui-workspace apply', () => {
       ['session-id', 450, SessionIdMenuItem, 'workspace'],
     ])
     expect(rows(ROW_ACTION)).toEqual([
-      ['archive', 100, ArchiveSessionRowButton, 'workspace'],
-      ['pin', 200, PinSessionRowButton, 'workspace'],
+      ['pin', 100, PinSessionRowButton, 'workspace'],
+      ['archive', 200, ArchiveSessionRowButton, 'workspace'],
     ])
     expect(rows('shell.overlay')).toEqual([
       ['workspace.session-rename', undefined, SessionRenameDialog, 'workspace'],

@@ -79,6 +79,7 @@ const harness = await vi.hoisted(async () => {
       getURL: () => this.urls.at(-1) ?? '',
       mainFrame: { url: '' },
       getZoomFactor: () => 1,
+      setZoomFactor: vi.fn(),
       isDestroyed: () => this.destroyed,
       setIgnoreMenuShortcuts: vi.fn(),
       focus: vi.fn(),
@@ -443,6 +444,27 @@ afterEach(async () => {
 })
 
 describe('desktop main startup', () => {
+  it('loads the saved main-window scale and persists menu changes before applying them', async () => {
+    configureTestAuthPopup(false)
+    const path = join(harness.app.getPath('userData'), 'desktop', 'settings.json')
+    writeFileSync(path, '{"appearance":{"zoomFactor":1.1},"custom":"keep"}')
+    await readyForUpdate()
+    const window = harness.windows[0]!
+    expect(window.options).toMatchObject({ webPreferences: { zoomFactor: 1.1 } })
+    const menu = applicationMenuItems().find(item => item.label === en.interfaceZoomMenu)!.submenu as MenuItemConstructorOptions[]
+    expect(menu.find(item => item.label === '110%')?.checked).toBe(true)
+    const select = menu.find(item => item.label === '125%')!
+    select.click?.({} as Electron.MenuItem, undefined, {})
+    expect(window.webContents.setZoomFactor).toHaveBeenCalledWith(1.25)
+    expect(JSON.parse(readFileSync(path, 'utf8'))).toEqual({ appearance: { zoomFactor: 1.25 }, custom: 'keep' })
+    writeFileSync(path, '{')
+    window.webContents.setZoomFactor.mockClear()
+    select.click?.({} as Electron.MenuItem, undefined, {})
+    expect(window.webContents.setZoomFactor).not.toHaveBeenCalled()
+    expect(harness.dialog.showErrorBox).toHaveBeenCalledWith(en.interfaceZoomFailed, expect.any(String))
+    expect(readFileSync(path, 'utf8')).toBe('{')
+  })
+
   it.each([true, false])('selects the package manager before Host startup (packaged=%s)', async (packaged) => {
     harness.app.isPackaged = packaged
     await readyForUpdate()
@@ -973,7 +995,7 @@ describe('desktop main startup', () => {
     expect(() => handler(event, 'application', NaN, 34)).toThrow('invalid popup request')
     const application = handler(event, 'application', 48, 34)
     expect(harness.menu.buildFromTemplate.mock.lastCall![0].map(item => item.label ?? item.type)).toEqual([
-      '关于 DeepSeek Harness', 'separator', '检查更新…', '管理 dsh 命令…', 'separator', '退出',
+      '关于 DeepSeek Harness', 'separator', '检查更新…', '界面缩放', '管理 dsh 命令…', 'separator', '退出',
     ])
     expect(harness.popup.mock.lastCall![0]).toMatchObject({ window, x: 48, y: 34 })
     expect(harness.popup.mock.lastCall![0].callback).toBeTypeOf('function')
@@ -1010,8 +1032,8 @@ describe('desktop main startup', () => {
       : ['Application', 'editMenu'])
     const application = template[0]!.submenu as MenuItemConstructorOptions[]
     expect(application.filter(item => item.visible !== false).map(describeItem)).toEqual(platform === 'darwin'
-      ? ['about', 'separator', en.checkUpdatesMenu, en.cliCommandMenu, 'separator', 'hide', 'hideOthers', 'unhide', 'separator', 'quit']
-      : ['about', 'separator', en.checkUpdatesMenu, 'separator', 'quit'])
+      ? ['about', 'separator', en.checkUpdatesMenu, en.interfaceZoomMenu, en.cliCommandMenu, 'separator', 'hide', 'hideOthers', 'unhide', 'separator', 'quit']
+      : ['about', 'separator', en.checkUpdatesMenu, en.interfaceZoomMenu, 'separator', 'quit'])
     expect(harness.menu.setApplicationMenu).toHaveBeenCalledOnce()
   })
 
@@ -1027,7 +1049,8 @@ describe('desktop main startup', () => {
       const commands = applicationMenuItems().filter(item =>
         item.role === 'hide' || item.role === 'hideOthers' || item.role === 'unhide' || item.role === 'quit'
         || item.label === en.checkUpdatesMenu || item.label === zh.checkUpdatesMenu
-        || item.label === en.cliCommandMenu || item.label === zh.cliCommandMenu)
+        || item.label === en.cliCommandMenu || item.label === zh.cliCommandMenu
+        || item.label === en.interfaceZoomMenu || item.label === zh.interfaceZoomMenu)
       await expect(JSON.stringify(commands, null, 2) + '\n')
         .toMatchFileSnapshot(`./expected/application-menu-${locale}.json`)
       expect(harness.app.name).toBe('@deepseek-ai/dsh-desktop')

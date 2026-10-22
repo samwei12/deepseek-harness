@@ -61,6 +61,8 @@ pnpm run start:desktop
 | `~/.local/share/dsh-backups` | 可恢复的迁移备份与本机验收记录。 |
 | `~/Develop/PKM/00-Projects/本地个人 Agent.md` | 项目目标与决定；修改遵循 Obsidian PKM 流程。 |
 
+桌面界面偏好与插件清单由 `~/Develop/config/Mac/.dsh` 维护，desktop profile 和 Electron 壳层设置目录通过软链接指向该目录；目录内 README 说明布局、插件版本与恢复步骤。整体界面缩放位于应用菜单。会话数据与凭据继续由现有目录维护。
+
 <a id="choose-the-change-location"></a>
 
 ## 按改动选择位置
