@@ -32,7 +32,7 @@ cd ~/Develop/deepseek-harness
 pnpm run start:desktop
 ```
 
-Debugging retains upstream development defaults; optionally set `DSH_DESKTOP_OPEN_DEVTOOLS=0` to close automatic DevTools or `DSH_DESKTOP_RENDERER_DEBUG_PORT=19322` to avoid a port 9222 conflict. The upstream launcher supplies its bundled-runtime location; launch the development app through this command, not by opening the generated app bundle directly. `Cmd+W` hides its window while the Host stays running; `Cmd+Q` exits. Keep the invoking terminal open.
+Debugging retains upstream development defaults; optionally set `DSH_DESKTOP_OPEN_DEVTOOLS=0` to close automatic DevTools or `DSH_DESKTOP_RENDERER_DEBUG_PORT=19322` to avoid a port 9222 conflict. The launcher records its bundled-runtime location in `apps/desktop/.desktop-build/development/Harness Dev.app`. After preparing it with the command above, open that app from Finder, Dock, or a Raycast shortcut for daily use; these launches need no terminal. `Cmd+W` hides its window while the Host stays running; `Cmd+Q` exits. When launching from a terminal, keep that terminal open.
 
 Choose a workspace in the sidebar, then select a model beside the message input. The groups are `IDEA Lab · DS Flash`, `CloudCLI · Opus`, and `Qoder · DS Flash`. Qoder requires the local Magpie GUI to remain running. DSH owns the agent loop; the `pi-ai` model adapter does not run Pi Agent or load Pi extensions.
 

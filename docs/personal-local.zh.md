@@ -32,7 +32,7 @@ cd ~/Develop/deepseek-harness
 pnpm run start:desktop
 ```
 
-调试窗口和端口沿用上游开发默认值；如需关闭自动调试窗口或避开 9222 端口占用，可按需设置 `DSH_DESKTOP_OPEN_DEVTOOLS=0` 或 `DSH_DESKTOP_RENDERER_DEBUG_PORT=19322`。上游启动器负责提供随附运行库路径；开发应用通过此命令启动，不直接双击生成的应用包。`Cmd+W` 隐藏窗口并保持 Host 运行，`Cmd+Q` 退出；保持启动终端打开。
+调试窗口和端口沿用上游开发默认值；如需关闭自动调试窗口或避开 9222 端口占用，可按需设置 `DSH_DESKTOP_OPEN_DEVTOOLS=0` 或 `DSH_DESKTOP_RENDERER_DEBUG_PORT=19322`。启动器将随附运行库路径写入 `apps/desktop/.desktop-build/development/Harness Dev.app`。通过上述命令准备后，日常可从 Finder、Dock 或 Raycast 快捷键打开该应用，无需终端。`Cmd+W` 隐藏窗口并保持 Host 运行，`Cmd+Q` 退出；通过终端启动时，保持该终端打开。
 
 在侧栏选择工作目录，再从输入框旁选择模型。分组为 `IDEA Lab · DS Flash`、`CloudCLI · Opus` 和 `Qoder · DS Flash`。Qoder 需要本机 Magpie 图形应用保持运行。Agent 循环由 DSH 负责，`pi-ai` 模型适配器不会运行 Pi Agent 或加载 Pi 扩展。
 
