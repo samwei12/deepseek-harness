@@ -9,6 +9,10 @@ English | [中文](personal-local.zh.md)
 
 Use this repository as the working entry for the personal DSH setup. This reference covers the existing local installation, not a portable installer. Private configuration, credentials, sessions, and runtime data remain outside the checkout.
 
+Project goals and decisions belong to `~/Develop/PKM/00-Projects/本地个人 Agent.md`; read its latest content through Obsidian before discussing direction or next steps. The goals combine a personal Codex-like work entry, Pi-like customization, and an OpenClaw/dots-like proactive assistant. The assistant should offer useful suggestions from email, GitHub, and conversation context; the phone provides notifications and continued conversation. Local desktop and model integration form only part of that foundation.
+
+The current plan selects the home Mac mini as the persistent assistant Host, adds a DSH personal-assistant entry connected to it, keeps ordinary sessions on their respective computers, and uses frpc for remote access. The assistant uses the model configuration available on mini; this does not require on-device inference. Phone form, notification channel, and other decisions remain in the project document. The user owns implementation; maintaining plans and documentation does not authorize deployment, frpc changes, or client development.
+
 ## Table of Contents
 
 - [Start and switch models](#start-and-switch-models)

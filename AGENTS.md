@@ -4,7 +4,7 @@ DeepSeek Harness is an all-plugin Cordis agent harness. Read [docs/architecture.
 
 ## 个人 DSH 入口
 
-本机个人 DSH 的使用与维护先读 [个人使用说明](docs/personal-local.zh.md)。私有配置、凭据、会话和运行数据保持在现有外部目录；共享规则、Skill 与记忆适配在各自 owner 修改，不复制进本仓。产品研发继续遵循下文上游约定。
+本机个人 DSH 的使用与维护先读 [个人使用说明](docs/personal-local.zh.md)。涉及产品目标、路线或下一步时，先经 Obsidian 读取该说明指向的 PKM 项目主文档，不以本机试用基线代替整体目标。私有配置、凭据、会话和运行数据保持在现有外部目录；共享规则、Skill 与记忆适配在各自 owner 修改，不复制进本仓。产品研发继续遵循下文上游约定。
 
 ## Pre-stable APIs and released Session data
 
