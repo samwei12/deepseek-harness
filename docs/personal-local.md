@@ -81,15 +81,16 @@ For memory capture or explicit recall, use the existing `memory-runtime` Skill a
 
 Before upgrading, inspect the working tree, actual versions, and relevant [upgrade guides](upgrade-guide/). Preserve personal documentation when integrating upstream changes. Read the version-matched [desktop instructions](../apps/desktop/README.md) and the local installation record before rebuilding or reinstalling.
 
-After updating source, quit the old instance with `Cmd+Q`, then run the following commands in a terminal. `dev:desktop` rebuilds and launches; use `start:desktop` for subsequent daily launches.
+Run the update command from an external terminal in this checkout. It checks for a clean worktree and a fast-forward target, requests the existing Host's shutdown with `SIGTERM`, waits for the Host and Electron shell to exit, then updates source, installs locked dependencies, runs the complete build and starts the official desktop launcher. Running the command authorizes interruption of this instance's tasks. Native UI access is not a deployment prerequisite; interactive checks supplement the command-line build, version and Host-startup evidence.
 
 ```sh
 cd ~/Develop/deepseek-harness
-pnpm install --frozen-lockfile
-pnpm run dev:desktop
+node scripts/update_personal_desktop.mjs
 ```
 
-The development app depends on this checkout and generated artifacts. Keep its generated launcher unchanged and add no personal launch wrapper; this rebuild preserves models, credentials, sessions in `~/.dsh`, and the existing memory-runtime capture configuration. Validate the official CLI, local Keychain provider, historical-session resume, and tools after an upgrade; preserve the repository-specific Git hook setting.
+The default target is the current branch's configured upstream; existing local commits remain when that branch is already an ancestor. `--ref <revision>` selects an exact existing revision; `--ref HEAD` rebuilds committed local changes. An unresponsive Electron shell receives `SIGKILL` only after its Host has exited and a fresh process check finds no replacement Host. A dirty worktree, diverged history, remaining old processes or failed build stops the command. It never stashes, resets or pushes. The printed starting commit remains available in Git history for recovery; a failed build leaves the stopped application and source visible for repair. Keep the terminal open while the final launcher runs.
+
+The development app depends on this checkout and generated artifacts. The updater reuses its saved home, browser-data path, debugger ports and DevTools preference, then invokes `start:desktop`; it retains the official generated launcher and preserves models, credentials, sessions, existing plugins and memory-runtime capture configuration. It does not copy configuration between machines. Daily launches still use `start:desktop`. Validate the official CLI, local Keychain provider, historical-session resume, and tools after an upgrade; preserve the repository-specific Git hook setting.
 
 Keep private runtime files in place and outside commits. Before a runtime migration or destructive reset, establish the exact scope and a recoverable backup. Cloning or updating source alone does not authorize migrating sessions, changing credentials, or modifying Pi configuration. Validate the changed behavior; reuse still-applicable evidence for untouched paths.
 
