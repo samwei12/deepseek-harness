@@ -158,8 +158,8 @@ describe('web e2e: mid-turn steering lands durably and visibly', () => {
     // Answer the composer; the tool result closes the step, the loop drains
     // the steer as user/message, and the steered continuation runs the
     // final model call.
+    // The single question is the last one, so the pick itself submits the batch.
     await composer.getByRole('radio', { name: 'Yes' }).click()
-    await composer.getByRole('radio', { name: 'Yes' }).press('Enter')
     await settled
 
     if (MODE === 'record') {
@@ -423,8 +423,8 @@ describe.each(['reconnect', 'delayed-inbox'] as const)('web e2e: composer shortc
     })
     try {
       holdInbox = handoff === 'delayed-inbox'
+      // The single question is the last one, so the pick itself submits the batch.
       await composer.getByRole('radio', { name: 'Yes' }).click()
-      await composer.getByRole('radio', { name: 'Yes' }).press('Enter')
       await expect.poll(() => claimed, { timeout: 10_000 }).toBe(true)
       await page.evaluate(() => new Promise<void>((resolve) => {
         requestAnimationFrame(() => requestAnimationFrame(() => { resolve() }))
@@ -518,8 +518,8 @@ describe('web e2e: composer shortcut follows the swapped busy behavior', () => {
     await queuedRow.getByRole('button', { name: 'Remove queued message' }).click()
     const composer = page.locator('[data-question-key]')
     await composer.waitFor({ timeout: 30_000 })
+    // The single question is the last one, so the pick itself submits the batch.
     await composer.getByRole('radio', { name: 'Yes' }).click()
-    await composer.getByRole('radio', { name: 'Yes' }).press('Enter')
     await settled
     expect(tripwire.pageErrors).toEqual([])
     expect(tripwire.warnings).toEqual([])
@@ -641,8 +641,8 @@ describe('web e2e: empty-draft Cmd+Enter steers the whole queue', () => {
     releaseQuestion.resolve(undefined)
     const composer = page.locator('[data-question-key]')
     await composer.waitFor({ timeout: 30_000 })
+    // The single question is the last one, so the pick itself submits the batch.
     await composer.getByRole('radio', { name: 'Yes' }).click()
-    await composer.getByRole('radio', { name: 'Yes' }).press('Enter')
     await settled
 
     const first = claimedMessages(sessionEvents, STEER_ONE)

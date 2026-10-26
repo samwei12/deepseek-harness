@@ -399,6 +399,40 @@ describe('QuestionComposer', () => {
     expect(document.querySelector('[data-expanded]')).toBeNull()
   })
 
+  it('submits the batch as soon as the last single-select question is picked', () => {
+    const { carrier, answer } = wait([
+      { id: 'mode', question: 'Which mode?', options: [{ label: 'Alpha (Recommended)' }, { label: 'Beta' }] },
+      { id: 'scope', question: 'Which scope?', options: [{ label: 'Tool only' }, { label: 'All' }] },
+    ])
+    render(<QuestionComposer matched={carrier} {...kit} />)
+
+    fireEvent.click(screen.getByRole('radio', { name: 'Beta' }))
+    expect(screen.getByText('2 / 2')).toBeTruthy()
+    expect(answer).not.toHaveBeenCalled()
+    fireEvent.click(screen.getByRole('radio', { name: 'All' }))
+
+    expect(answer).toHaveBeenCalledOnce()
+    expect(answer).toHaveBeenCalledWith(answerBatch([
+      { id: 'mode', selected: ['Beta'] },
+      { id: 'scope', selected: ['All'] },
+    ]))
+  })
+
+  it('sends an incomplete batch back to its first open question instead of submitting', () => {
+    const { carrier, answer } = wait([
+      { id: 'note', question: 'Anything else?' },
+      { id: 'scope', question: 'Which scope?', options: [{ label: 'Tool only' }, { label: 'All' }] },
+    ])
+    render(<QuestionComposer matched={carrier} {...kit} />)
+
+    fireEvent.click(screen.getByLabelText('下一题'))
+    fireEvent.click(screen.getByRole('radio', { name: 'All' }))
+
+    expect(answer).not.toHaveBeenCalled()
+    expect(screen.getByText('1 / 2')).toBeTruthy()
+    expect(screen.getByText('请先完成这道问题。')).toBeTruthy()
+  })
+
   it('renders plan detail through the shared assistant Markdown primitive', () => {
     const { carrier } = wait([{
       id: 'plan',
@@ -740,7 +774,9 @@ describe('timed card', () => {
       void first.request.result.then(() => { firstSettled = true }, () => { firstSettled = true })
       const view = render(<QuestionComposer matched={first.carrier} {...kit} />)
 
-      fireEvent.click(screen.getByRole('radio', { name: '仅工具' }))
+      // Picking the only single-select option submits at once, so the draft
+      // that holds the wait open here is free text.
+      fireEvent.change(screen.getByPlaceholderText('输入你的答案'), { target: { value: '先想想' } })
       expect(first.carrier.snapshot()).toMatchObject({ waitState: 'editing', countdown: { running: false } })
       expect(draftInstance.getSnapshot().progressByRequest[first.carrier.key]?.wait).toBe('editing')
       await act(async () => { await vi.advanceTimersByTimeAsync(5_000) })
@@ -778,6 +814,10 @@ describe('timed card', () => {
       })
       expect(screen.queryByText(/秒后继续工作/)).toBeNull()
       expect(screen.getByRole<HTMLButtonElement>('button', { name: '提交' }).disabled).toBe(true)
+      // With no channel, a pick stays a draft instead of reporting a failed send.
+      fireEvent.click(screen.getByRole('radio', { name: '仅工具' }))
+      expect(screen.getByRole('radio', { name: '仅工具' }).getAttribute('aria-checked')).toBe('true')
+      expect(screen.getByRole('status').textContent).toBe('')
 
       const answer = vi.fn(async () => true)
       act(() => {
@@ -785,9 +825,8 @@ describe('timed card', () => {
         carrier.setState('continued')
       })
       expect(screen.getByText('已继续工作，仍可回答')).toBeTruthy()
-      fireEvent.click(screen.getByRole('radio', { name: '仅工具' }))
       expect(screen.getByRole<HTMLButtonElement>('button', { name: '提交' }).disabled).toBe(false)
-      fireEvent.click(screen.getByRole('button', { name: '提交' }))
+      fireEvent.click(screen.getByRole('radio', { name: '仅工具' }))
       await act(async () => { await Promise.resolve() })
       expect(answer).toHaveBeenCalledWith({ answers: [{ id: 'scope', selected: ['仅工具'] }] })
     } finally {
@@ -819,7 +858,6 @@ describe('timed card', () => {
     const { carrier, request } = timedCard(Date.now() + 60_000)
     render(<QuestionComposer matched={carrier} {...kit} />)
     fireEvent.click(screen.getByRole('radio', { name: '仅工具' }))
-    fireEvent.click(screen.getByRole('button', { name: '提交' }))
 
     await expect(request.result).resolves.toEqual({ answers: [{ id: 'scope', selected: ['仅工具'] }] })
     expect(screen.getByRole<HTMLButtonElement>('button', { name: '正在提交…' }).disabled).toBe(true)
@@ -846,7 +884,6 @@ describe('timed card', () => {
     render(<QuestionComposer matched={carrier} {...kit} />)
 
     fireEvent.click(screen.getByRole('radio', { name: '仅工具' }))
-    fireEvent.click(screen.getByRole('button', { name: '提交' }))
     await vi.waitFor(() => { expect(hide).toHaveBeenCalledOnce() })
     expect(screen.getByRole<HTMLButtonElement>('button', { name: '提交' }).disabled).toBe(false)
     expect(screen.queryByText(zh['status.sent'])).toBeNull()
@@ -873,7 +910,6 @@ describe('timed card', () => {
     render(<Composer matched={carrier} {...kit} useQuestionCard={useQuestionCard} />)
 
     fireEvent.click(screen.getByRole('radio', { name: '仅工具' }))
-    fireEvent.click(screen.getByRole('button', { name: '提交' }))
 
     await vi.waitFor(() => { expect(hide).toHaveBeenCalledOnce() })
     expect(screen.getByRole<HTMLButtonElement>('button', { name: '提交' }).disabled).toBe(false)

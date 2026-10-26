@@ -352,15 +352,27 @@ function QuestionFlow({ pending, t, useStore, useQuestionCard, actions }: Questi
   }
 
   const choose = (label: string): void => {
-    updateDraft((current) => {
-      if (question.multiSelect === true) {
+    if (question.multiSelect === true) {
+      updateDraft((current) => {
         const selected = current.selected.includes(label)
           ? current.selected.filter(item => item !== label)
           : [...current.selected, label]
         return { ...current, selected, skipped: false }
-      }
-      return { selected: [label], custom: '', skipped: false }
-    }, question.multiSelect !== true && index < questions.length - 1 ? index + 1 : index)
+      })
+      return
+    }
+    // A single choice settles its question: earlier pages advance, and the last
+    // page submits the batch at once, so picking never needs a second click.
+    const isLast = index === questions.length - 1
+    const nextDrafts = drafts.map((item, itemIndex) => itemIndex === index
+      ? { selected: [label], custom: '', skipped: false }
+      : item)
+    engage()
+    replaceProgress(isLast ? index : index + 1, nextDrafts)
+    setError(null)
+    // With no channel to carry it (a timed card between its deadline and the
+    // continued handoff) the pick stays a draft for the Submit button.
+    if (isLast && canSubmit) submitDrafts(nextDrafts)
   }
 
   const answered = (item: QuestionDraftAnswer): boolean =>
