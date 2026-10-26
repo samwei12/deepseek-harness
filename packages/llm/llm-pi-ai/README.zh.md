@@ -29,6 +29,8 @@ kind: "package-reference"
 
 适配器接受 LLM 服务的[仅供请求使用的 user 输入](../llm/README.zh.md#use-this-package)，并可将其与持久历史混用。user 身份与来源不会进入 pi-ai 内容；assistant 回放元数据和工具调用关联仍由持久消息携带。
 
+当 `GenerateOptions.sessionId` 存在时，每个 pi-ai 提供方请求都会携带 `x-deepseek-harness-session-id`，其值就是已有的 Session 标识。请求没有 Session 标识时会省略该标头，部署标头不能替换它，而且该行为不依赖提示缓存保留策略或 wire 兼容性设置。
+
 ### 何时选择
 
 当同一组合服务多个提供方、某条路由需要 pi-ai 目录默认值并修正少数字段、或必须通过自有端点与协议到达手工声明网关时，选择本适配器。当部署不需要其他提供方时，选择 `dsh-llm-deepseek` 直连 DeepSeek 路由。两个适配器可以同时挂载，因为它们的路由名不冲突；注册其他适配器已拥有的路由会导致插件加载失败。

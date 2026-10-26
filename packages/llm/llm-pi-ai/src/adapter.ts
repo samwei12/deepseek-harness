@@ -213,13 +213,23 @@ function reasoningInfo(
   }
 }
 
-/** Merge deployment headers while removing case-insensitive attribution collisions. */
-function requestHeaders(headers: Readonly<Record<string, string>> | undefined): Record<string, string> {
+/** Header that carries the existing Harness Session identity to provider gateways. */
+const SESSION_ID_HEADER = 'x-deepseek-harness-session-id'
+
+/** Merge deployment headers while reserving Harness attribution and session identity. */
+function requestHeaders(
+  headers: Readonly<Record<string, string>> | undefined,
+  sessionId: string | undefined,
+): Record<string, string> {
   const attribution = attributionHeaders()
-  const reserved = new Set(Object.keys(attribution).map(name => name.toLowerCase()))
+  const reserved = new Set([
+    ...Object.keys(attribution),
+    SESSION_ID_HEADER,
+  ].map(name => name.toLowerCase()))
   return {
     ...Object.fromEntries(Object.entries(headers ?? {}).filter(([name]) => !reserved.has(name.toLowerCase()))),
     ...attribution,
+    ...sessionId === undefined ? {} : { [SESSION_ID_HEADER]: sessionId },
   }
 }
 
@@ -419,9 +429,12 @@ export class PiAiAdapter extends LlmAdapter {
         ...options.maxTokens === undefined ? {} : { maxTokens: options.maxTokens },
         ...options.sessionId === undefined ? {} : { sessionId: String(options.sessionId) },
         signal: watchdog.signal,
-        // Profile headers are deployment-owned; attribution names are
-        // Harness-owned and therefore win collisions.
-        headers: requestHeaders(profile.headers),
+        // Profile headers are deployment-owned; attribution and session names
+        // are Harness-owned and therefore win collisions.
+        headers: requestHeaders(
+          profile.headers,
+          options.sessionId === undefined ? undefined : String(options.sessionId),
+        ),
       })
       const iterator = toStreamChunks(events, model.contextWindow, options.signal, model.id)[Symbol.asyncIterator]()
       let exhausted = false

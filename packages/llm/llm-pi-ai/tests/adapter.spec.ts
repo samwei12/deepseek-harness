@@ -117,11 +117,89 @@ describe('PiAiAdapter provider routing', () => {
   it('merges profile headers with Harness attribution winning', async () => {
     const server = await mockServer([{ events: textEvents }])
     const ctx = await harness(server.url, {
-      headers: { 'x-company': 'private', 'User-Agent': 'wrong' },
+      headers: {
+        'x-company': 'private',
+        'User-Agent': 'wrong',
+        'X-DeepSeek-Harness-Session-ID': 'wrong',
+      },
     })
-    await assemble(ctx, { model: 'deepseek-flash', messages: [] })
+    await assemble(ctx, { model: 'deepseek-flash', messages: [], sessionId: 'session-real' as never })
     expect(server.headers[0]?.['x-company']).toBe('private')
     expect(server.headers[0]?.['user-agent']).toBe(userAgent())
+    expect(server.headers[0]?.['x-deepseek-harness-session-id']).toBe('session-real')
+  })
+
+  it('stamps distinct headers on concurrent identical-content requests', async () => {
+    const server = await mockServer([{ events: anthropicTextEvents }, { events: anthropicTextEvents }])
+    const ctx = new Context()
+    await ctx.plugin(LlmRuntime)
+    await ctx.plugin(LlmPiAi, {
+      providers: {
+        anthropic: {
+          apiKeyEnv: 'PI_TEST_KEY',
+          baseURL: server.url,
+          cacheRetention: 'none',
+        },
+      },
+    })
+    const messages = [createUserMessage({
+      content: [{ type: 'text', text: 'same request content' }],
+      source: { kind: 'model', provider: 'deepseek-official', model: 'deepseek-v4-flash' },
+    })]
+
+    await Promise.all([
+      assemble(ctx, { provider: 'anthropic', model: 'claude-sonnet-4-5', messages, sessionId: 'session-a' as never }),
+      assemble(ctx, { provider: 'anthropic', model: 'claude-sonnet-4-5', messages, sessionId: 'session-b' as never }),
+    ])
+
+    expect(server.headers).toHaveLength(2)
+    expect(new Set(server.headers.map(headers => headers['x-deepseek-harness-session-id']))).toEqual(
+      new Set(['session-a', 'session-b']),
+    )
+  })
+
+  it('retains the same session header across a failed request and its retry', async () => {
+    const server = await mockServer([
+      { status: 500, body: JSON.stringify({ error: { message: 'retry this request' } }) },
+      { events: anthropicTextEvents },
+    ])
+    const ctx = new Context()
+    await ctx.plugin(LlmRuntime)
+    await ctx.plugin(LlmPiAi, {
+      providers: {
+        anthropic: {
+          apiKeyEnv: 'PI_TEST_KEY',
+          baseURL: server.url,
+          cacheRetention: 'none',
+          compat: { supportsTemperature: false },
+        },
+      },
+    })
+    const options = {
+      provider: 'anthropic',
+      model: 'claude-sonnet-4-5',
+      messages: [],
+      sessionId: 'retry-session' as never,
+    }
+
+    const first = await assemble(ctx, options)
+    const second = await assemble(ctx, options)
+
+    expect(first.finish.kind).toBe('error')
+    expect(second.finish.kind).toBe('stop')
+    expect(server.headers.map(headers => headers['x-deepseek-harness-session-id'])).toEqual([
+      'retry-session',
+      'retry-session',
+    ])
+  })
+
+  it('omits the session header without a session id, even when deployment headers propose one', async () => {
+    const server = await mockServer([{ events: textEvents }])
+    const ctx = await harness(server.url, {
+      headers: { 'X-DEEPSEEK-HARNESS-SESSION-ID': 'deployment-session' },
+    })
+    await assemble(ctx, { model: 'deepseek-flash', messages: [] })
+    expect(server.headers[0]?.['x-deepseek-harness-session-id']).toBeUndefined()
   })
 
   it('forwards common stream options and profile reasoning', async () => {
