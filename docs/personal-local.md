@@ -34,11 +34,11 @@ pnpm run start:desktop
 
 Debugging retains upstream development defaults; optionally set `DSH_DESKTOP_OPEN_DEVTOOLS=0` to close automatic DevTools or `DSH_DESKTOP_RENDERER_DEBUG_PORT=19322` to avoid a port 9222 conflict. The launcher records its bundled-runtime location in `apps/desktop/.desktop-build/development/Harness Dev.app`. After preparing it with the command above, open that app from Finder, Dock, or a Raycast shortcut for daily use; these launches need no terminal. `Cmd+W` hides its window while the Host stays running; `Cmd+Q` exits. When launching from a terminal, keep that terminal open.
 
-Choose a workspace in the sidebar, then select a model beside the message input. The groups are `IDEA Lab · DS Flash`, `CloudCLI · Opus`, and `Qoder · DS Flash`. Qoder requires the local Magpie GUI to remain running. DSH owns the agent loop; the `pi-ai` model adapter does not run Pi Agent or load Pi extensions.
+Choose a workspace in the sidebar, then select a model beside the message input. The groups are `IDEA Lab · DS Flash`, `CloudCLI · Opus`, and `Qoder · Magpie`. Qoder requires the local Magpie GUI to remain running. DSH owns the agent loop; the `pi-ai` model adapter does not run Pi Agent or load Pi extensions.
 
 For continuous terminal chat, enter the workspace and run `dsh --profile pi-tui`. This native CLI profile loads community plugin `@xmoon76/dsh-pi-tui@0.5.3`. Use `/model` to switch models, `/sessions` to browse history, two quick Ctrl+C presses to exit, and `dsh --profile pi-tui --session <session-id>` to resume. Bare `dsh` retains upstream CLI behavior.
 
-`~/.dsh/cordis.patch.yml` holds the shared model catalog, permissions, telemetry settings, and local credential-provider configuration. DSH composes this native home layer after each profile; no launcher copies or translates configuration. Interface preferences and default models remain profile-owned. Shared storage does not authorize simultaneous execution of the same session in two Hosts.
+`~/.dsh/cordis.patch.yml` holds permissions, telemetry settings, and local credential-provider configuration. Its native `!!js` expressions load IDEA Lab, CloudCLI, and Qoder routes through `~/.dsh/pi_model_routes.cjs` from the single catalog described below. Interface preferences and default models remain profile-owned. Shared storage does not authorize simultaneous execution of the same session in two Hosts.
 
 <a id="directories-and-ownership"></a>
 
@@ -50,7 +50,7 @@ Paths below describe this machine. A clone of the fork does not contain private 
 | --- | --- |
 | `~/Develop/deepseek-harness` | Source checkout: personal `origin`, official `upstream`, and built application artifacts. |
 | `~/.dsh` | Default Harness home, using upstream configuration and persistence formats. |
-| `~/.dsh/cordis.patch.yml` | Native shared configuration for all profiles. |
+| `~/.dsh/cordis.patch.yml` | Native shared configuration for all profiles; all three routes read model metadata from the common catalog. |
 | `~/.dsh/profiles/{desktop,web,pi-tui}/` | Native profile manifests, installed plugins, and interface preferences. |
 | `~/.dsh/profiles/shared-credentials/keychain.mjs` | Local Keychain credential provider; other references and records retain DSH's native credential store. |
 | `~/.dsh/sessions/`, `storages/`, `user-history/`, `logs/` | Native sessions, plugin state, input history, and logs. |
@@ -67,7 +67,7 @@ Desktop UI preferences and the plugin manifest are maintained in `~/Develop/conf
 
 ## Choose the change location
 
-Edit shared model labels and parameters in the home patch, then verify the model menu. Route identifiers such as `pi-idea` are distinct from display labels. The Keychain plugin resolves configured credential references directly, with no Pi runtime dependency or key copy into configuration. Model metadata is owned by DSH configuration, not synchronized from Pi.
+Edit only the `idea`, `magpie-cloudcli`, and `magpie-qoder` providers in `~/.pi/agent/models.json`: both clients use their endpoint, model, modality, capacity, and reasoning declarations. DSH reads the catalog when its home configuration loads; restart DSH after changing it, and open `/model` to reload it in Pi. IDEA Lab connects directly to IDEA; CloudCLI and Qoder retain their respective Magpie gateways. Credential providers keep their existing owners; the catalog reader neither runs Pi nor copies its credentials. The retired Pi Qoder bridge on port 3100 is not used.
 
 For startup problems, inspect upstream launch diagnostics, the active profile, and its configured plugins. CloudCLI and Qoder require their existing model gateways. A quota or network failure does not establish a migration or configuration defect.
 

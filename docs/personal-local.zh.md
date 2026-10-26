@@ -34,11 +34,11 @@ pnpm run start:desktop
 
 调试窗口和端口沿用上游开发默认值；如需关闭自动调试窗口或避开 9222 端口占用，可按需设置 `DSH_DESKTOP_OPEN_DEVTOOLS=0` 或 `DSH_DESKTOP_RENDERER_DEBUG_PORT=19322`。启动器将随附运行库路径写入 `apps/desktop/.desktop-build/development/Harness Dev.app`。通过上述命令准备后，日常可从 Finder、Dock 或 Raycast 快捷键打开该应用，无需终端。`Cmd+W` 隐藏窗口并保持 Host 运行，`Cmd+Q` 退出；通过终端启动时，保持该终端打开。
 
-在侧栏选择工作目录，再从输入框旁选择模型。分组为 `IDEA Lab · DS Flash`、`CloudCLI · Opus` 和 `Qoder · DS Flash`。Qoder 需要本机 Magpie 图形应用保持运行。Agent 循环由 DSH 负责，`pi-ai` 模型适配器不会运行 Pi Agent 或加载 Pi 扩展。
+在侧栏选择工作目录，再从输入框旁选择模型。分组为 `IDEA Lab · DS Flash`、`CloudCLI · Opus` 和 `Qoder · Magpie`。Qoder 需要本机 Magpie 图形应用保持运行。Agent 循环由 DSH 负责，`pi-ai` 模型适配器不会运行 Pi Agent 或加载 Pi 扩展。
 
 终端连续对话使用 `dsh --profile pi-tui`，先进入工作目录再执行。这个原生 CLI profile 加载社区插件 `@xmoon76/dsh-pi-tui@0.5.3`。使用 `/model` 切换模型、`/sessions` 浏览历史、快速按两次 Ctrl+C 退出；`dsh --profile pi-tui --session <session-id>` 恢复会话。单独执行 `dsh` 保持上游 CLI 行为。
 
-`~/.dsh/cordis.patch.yml` 保存共享模型目录、权限、遥测设置和本地凭据 provider 配置。DSH 在各 profile 之后组合这个原生 home 配置层，启动器不再复制或转换配置。界面偏好和默认模型继续归各 profile；共享存储不代表两个 Host 可以同时执行同一会话。
+`~/.dsh/cordis.patch.yml` 保存权限、遥测设置和本地凭据 provider 配置。其原生 `!!js` 表达式通过 `~/.dsh/pi_model_routes.cjs` 从下文的唯一目录加载 IDEA Lab、CloudCLI 和 Qoder 路由。界面偏好和默认模型继续归各 profile；共享存储不代表两个 Host 可以同时执行同一会话。
 
 <a id="directories-and-ownership"></a>
 
@@ -50,7 +50,7 @@ pnpm run start:desktop
 | --- | --- |
 | `~/Develop/deepseek-harness` | 源码仓：个人 `origin`、官方 `upstream`，以及构建产物。 |
 | `~/.dsh` | 默认 Harness home，沿用上游配置与持久化格式。 |
-| `~/.dsh/cordis.patch.yml` | 供所有 profile 使用的原生共享配置。 |
+| `~/.dsh/cordis.patch.yml` | 供所有 profile 使用的原生共享配置；三条路线的模型元数据均读取公共目录。 |
 | `~/.dsh/profiles/{desktop,web,pi-tui}/` | 原生 profile 清单、已安装插件与界面偏好。 |
 | `~/.dsh/profiles/shared-credentials/keychain.mjs` | 本地钥匙串凭据 provider；其他引用和记录沿用 DSH 原生凭据存储。 |
 | `~/.dsh/sessions/`、`storages/`、`user-history/`、`logs/` | 原生会话、插件状态、输入历史与日志。 |
@@ -67,7 +67,7 @@ pnpm run start:desktop
 
 ## 按改动选择位置
 
-修改共享模型显示名或参数时，编辑 home 配置层，再核对模型菜单。`pi-idea` 等路由标识与显示名分开。钥匙串插件直接解析已配置的凭据引用，不依赖 Pi 运行时，也不把密钥复制进配置；模型元数据归 DSH 配置维护，不从 Pi 同步。
+三条路线只维护 `~/.pi/agent/models.json` 中的 `idea`、`magpie-cloudcli`、`magpie-qoder` provider：两边共用其中的地址、模型、输入类型、容量和推理档位声明。DSH 加载 home 配置时读取该目录；修改后重启 DSH，Pi 打开 `/model` 重新读取。IDEA Lab 直接连接 IDEA；CloudCLI 和 Qoder 沿用各自的 Magpie 网关。凭据 provider 沿用各自 owner；目录读取器不运行 Pi，也不复制其凭据。已退役的 Pi Qoder `3100` 桥接不再使用。
 
 启动异常先检查上游启动日志、实际 profile 及其插件配置。CloudCLI 和 Qoder 依赖现有模型网关；额度或网络失败不能单独证明迁移或配置有缺陷。
 
