@@ -6,15 +6,7 @@ DeepSeek Harness is an all-plugin Cordis agent harness. Read [docs/architecture.
 
 本机个人 DSH 的使用与维护先读 [个人使用说明](docs/personal-local.zh.md)。涉及产品目标、路线或下一步时，先经 Obsidian 读取该说明指向的 PKM 项目主文档，不以本机试用基线代替整体目标。私有配置、凭据、会话和运行数据保持在现有外部目录；共享规则、Skill 与记忆适配在各自 owner 修改，不复制进本仓。产品研发继续遵循下文上游约定。
 
-当前个人使用 Electron 开发版，独立 App 打包暂缓。以下命令在仓库根目录执行；启动后保持终端打开，退出用 `Cmd+Q`，重新编译前先退出旧实例。
-
-```sh
-# 日常启动已有构建
-pnpm run start:desktop
-# 更新源码后安装锁定依赖，再重新编译并启动
-pnpm install --frozen-lockfile
-pnpm run dev:desktop
-```
+当前个人使用 Electron 开发版，独立 App 打包暂缓；启动与更新步骤见[个人使用说明](docs/personal-local.zh.md)。退出用 `Cmd+Q`，重新编译前先退出旧实例。
 
 沿用 `~/.dsh` 中的模型、凭据与历史，并保留现有 memory-runtime 采集配置；不新增启动包装或迁移数据。开发启动器默认使用 `~/.dsh`；只有需要隔离数据时才显式指定 `DSH_HOME`。调试窗口和端口沿用上游默认，可按需覆盖。完整步骤见[启动与切换模型](docs/personal-local.zh.md#start-and-switch-models)及[维护与升级](docs/personal-local.zh.md#maintain-and-upgrade)。
 
