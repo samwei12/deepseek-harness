@@ -42,7 +42,8 @@ describe('TodoPanel', () => {
   it('starts collapsed with the per-status count summary visible', () => {
     render(<TodoPanel todos={LIST} t={t} />)
     expect(screen.getByTestId('todo-panel')).toBeTruthy()
-    expect(screen.getByText('任务')).toBeTruthy()
+    expect(screen.getByRole('region', { name: '模型上次记录的计划' })).toBeTruthy()
+    expect(screen.getByText('模型上次记录的计划')).toBeTruthy()
     expect(screen.getByText('1 已完成 · 1 进行中 · 1 待处理')).toBeTruthy()
     expect(screen.getByRole('button', { expanded: false })).toBeTruthy()
     expect(screen.queryByRole('list')).toBeNull()

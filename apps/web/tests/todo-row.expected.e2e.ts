@@ -35,8 +35,10 @@ function todoShape(row: Element, panel: Element): string {
     `title=${first(row, 'title')}`,
     `summary=${first(row, 'summary')}`,
     `suffix=${first(row, 'summarySuffix')}`,
+    `plan=${panel.getAttribute('aria-label')}`,
     `panel=${first(panel, 'progress')}`,
     ...items,
+    '',
   ].join('\n')
 }
 
